@@ -44,7 +44,7 @@ int main()
 	// negative integers correspond to red pieces
 
 	short int safe_checkers[2] = {0};
-	short int checks_on_bar[2] = {0};
+	short int checks_on_bar[2] = {1,1};
 	srand((int)time(0));
 
 	// for testing
@@ -132,7 +132,7 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 		}
 
 		cout << "There are no valid moves. Press enter to skip your turn.";
-		cin.ignore();
+		while(cin.get() != '\n');
 		// end turn if there are no valid moves to get checker(s) off the bar
 		return;
 	}
@@ -173,7 +173,6 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 		cin >> roll_choice;
 		if(roll_choice == 'b' || roll_choice == 'B')
 			goto choose_piece;
-		else
 			
 		if((int)(roll_choice - '0') < roll_ind && (int)(roll_choice - '0') > 0)
 			break;
@@ -200,16 +199,61 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 	{
 		if(turn)
 		{
-			// make move
-			// -if checker is taken off board, add to safe_checkers
-			board[piece]--;
-			board[piece+move_val]++;
-			//TODO add moving off board and hitting
+			
+			if(piece == 25)
+			{
+				// if piece is on the bar
+				board[-1+move_val]++;
+				checks_on_bar[0]--;
+			}
+			else
+			{
+				// make move
+				board[piece]--;
+				if(piece+move_val >= SPACES)
+				{
+					// if checker coming off board
+					safe_checkers[0]++;
+				}
+				else if(board[piece+move_val] == -1)
+				{
+					// if checker gets hit
+					board[piece+move_val] += 2;
+					checks_on_bar[1]++;
+				}
+				else
+				{
+					board[piece+move_val]++;
+				}
+			}
 		}
 		else
 		{
-			board[piece]++;
-			board[piece-move_val]--;
+			if(piece == 25)
+			{
+				// if piece is on the bar
+				board[24-move_val]--;
+				checks_on_bar[1]--;
+			}
+			else
+			{
+				board[piece]++;
+				if(piece-move_val < 0)
+				{
+					// if checker coming off board
+					safe_checkers[1]++;
+				}
+				else if(board[piece-move_val] == 1)
+				{
+					// if checker gets hit
+					board[piece-move_val] -= 2;
+					checks_on_bar[0]++;
+				}
+				else
+				{
+					board[piece-move_val]--;
+				}
+			}
 		}
 	}
 	else
@@ -237,6 +281,9 @@ bool checkLegalMove(bool const &turn, int piece, int roll, short int board[SPACE
 {
 	if(turn)
 	{
+		if(piece == 25)
+			piece = -1;
+		
 		if(board[piece + roll] < -1)
 			return false;
 		else
@@ -244,6 +291,9 @@ bool checkLegalMove(bool const &turn, int piece, int roll, short int board[SPACE
 	}
 	else
 	{
+		if(piece == 25)
+			piece = 24;
+		
 		if(board[piece - roll] > 1)
 			return false;
 		else
