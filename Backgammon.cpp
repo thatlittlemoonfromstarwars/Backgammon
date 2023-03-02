@@ -59,6 +59,12 @@ int main()
 			break;
 		turn = !turn;
 	}
+	cout << "Congratulations!" << endl << "Player ";
+	if(turn)
+		cout << "0 ";
+	else
+		cout << "O ";
+	cout << "Wins!" << endl;
 
 	return EXIT_SUCCESS;
 } // end main()
@@ -281,23 +287,40 @@ bool checkLegalMove(bool const &turn, int piece, int roll, short int board[SPACE
 {
 	if(turn)
 	{
-		if(piece == 25)
+		if(piece == 25) // checker on bar
 			piece = -1;
 		
-		if(board[piece + roll] < -1)
+		if(piece+roll > SPACES-1)
+		{
+			// scan if any pieces are not in the final quarter
+			for(int i = 0; i < SPACES*3/4; i++)
+			{
+				if(board[i] > 0)
+					return false;
+			}
+		}
+		else if(board[piece+roll] < -1)
 			return false;
-		else
-			return true;
+		
+		return true;
 	}
 	else
 	{
 		if(piece == 25)
 			piece = 24;
-		
-		if(board[piece - roll] > 1)
+		if(piece-roll < 0)
+		{
+			// scan if any pieces are not in the final quarter
+			for(int i = SPACES-1; i >= SPACES/4; i--)
+			{
+				if(board[i] < 0)
+					return false;
+			}
+		}
+		else if(board[piece - roll] > 1)
 			return false;
-		else
-			return true;
+		
+		return true;
 	}
 } // end checkLegalMove()
 
@@ -451,6 +474,17 @@ bool checkWin(short const int board[SPACES])
 
 void setupBoard(short int board[SPACES])
 {
+	// FOR TESTING
+	// for(int i = 0; i < SPACES/2; i++)
+	// {
+	// 	board[i] = -5;
+	// }
+	// for(int i = SPACES/2; i < SPACES; i++)
+	// {
+	// 	board[i] = 5;
+	// }
+	
+	// default board setup
 	board[24 - 1] = -2;
 	board[1 - 1] = 2;
 
@@ -462,7 +496,7 @@ void setupBoard(short int board[SPACES])
 
 	board[6 - 1] = -5;
 	board[19 - 1] = 5;
-
+	
 } // end setupBoard()
 
 void copyBoard(short int board[SPACES], short int new_board[SPACES])
