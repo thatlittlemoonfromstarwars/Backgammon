@@ -166,14 +166,16 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 			roll_ind++;
 		}
 	}
-	int roll_choice;
-	cout << "Select dice roll to use (type b to choose different piece): "; // typing b deos not go back
+	char roll_choice;
+	cout << "Select dice roll to use (type b to choose different piece): ";
 	while(true)
 	{
 		cin >> roll_choice;
-		if(roll_choice == 98 || roll_choice == 66)
+		if(roll_choice == 'b' || roll_choice == 'B')
 			goto choose_piece;
-		if(roll_choice < roll_ind && roll_choice > 0)
+		else
+			
+		if((int)(roll_choice - '0') < roll_ind && (int)(roll_choice - '0') > 0)
 			break;
 		cout << "That is not a valid roll. Please choose a valid roll: ";
 	}
@@ -184,7 +186,7 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 	{
 		if(rolls[i] != 0)
 			roll_ind++;
-		if(roll_ind == roll_choice)
+		if(roll_ind == roll_choice - '0')
 		{
 			move_val = rolls[i];
 			rolls[i] = 0;
@@ -213,6 +215,14 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 	else
 	{
 		cout << "That is not a legal move. Please choose a different move." << endl;
+		for(int i = 0; i < 4; i++)
+		{
+			if(rolls[i] == 0)
+			{
+				rolls[i] = move_val;
+				break;
+			}
+		}
 		goto select_roll;
 		// -if not make player choose new move
 		// -if no legal moves, skip players turn, however inform player and make them
