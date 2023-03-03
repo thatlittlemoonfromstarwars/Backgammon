@@ -31,7 +31,7 @@ const short int SPACES = 24;
 
 void printBoard(bool const &turn, short int const board[SPACES], short int const checks_on_bar[2]);
 void setupBoard(short int board[SPACES]);
-bool checkWin(short const int board[SPACES]);
+bool checkWin(short const int board[SPACES], short const int checks_on_bar[2]);
 void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], short int checks_on_bar[2]);
 bool checkLegalMove(bool const &turn, int piece, int roll, short int board[SPACES]);
 void copyBoard(short int board[SPACES], short int new_board[SPACES]);
@@ -44,7 +44,7 @@ int main()
 	// negative integers correspond to red pieces
 
 	short int safe_checkers[2] = {0};
-	short int checks_on_bar[2] = {1,1};
+	short int checks_on_bar[2] = {0};
 	srand((int)time(0));
 
 	// for testing
@@ -55,11 +55,12 @@ int main()
 	while(true)
 	{
 		takeTurn(turn, board, safe_checkers, checks_on_bar);
-		if(checkWin(board))
+		if(checkWin(board, checks_on_bar))
 			break;
 		turn = !turn;
 	}
-	cout << "Congratulations!" << endl << "Player ";
+	// when a player wins:
+	cout << endl << "Congratulations!" << endl << "Player ";
 	if(turn)
 		cout << "0 ";
 	else
@@ -77,21 +78,15 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 	rolls[0] = rand() % 6 + 1;
 	rolls[1] = rand() % 6 + 1;
 
-	if(rolls[0] == rolls[1])
-	{
-		rolls[2] = rolls[3] = rolls[0];
-	}
+	if(rolls[0] == rolls[1]) rolls[2] = rolls[3] = rolls[0];
 
 	print_info:
 		
 	// check if there are any rolls left to use, if not return
 	for(int i = 0; i <= 4; i++)
 	{
-		if(i == 4)
-			return;
-
-		if(rolls[i] != 0)
-			break;
+		if(i == 4) return;
+		if(rolls[i] != 0) break;
 	}
 		
 	// print player info
@@ -112,8 +107,7 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 	cout << "Dice: ";
 	for(int i = 0; i < 4; i++)
 	{
-		if(rolls[i] != 0)
-			cout << rolls[i] << " ";
+		if(rolls[i] != 0) cout << rolls[i] << " ";
 	}
 	cout << endl;
 
@@ -148,7 +142,7 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 
 	while(true)
 	{
-		// ensure selected piece is in the correct range and the right colour
+		// ensure selected piece is in the correct range and the right suit
 		cin >> piece;
 		piece--;
 		if((piece >= 0 && piece <= 23) && ((turn && board[piece] > 0) || (!turn && board[23 - piece] < 0)))
@@ -177,20 +171,20 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 	while(true)
 	{
 		cin >> roll_choice;
-		if(roll_choice == 'b' || roll_choice == 'B')
-			goto choose_piece;
+		if(roll_choice == 'b' || roll_choice == 'B') goto choose_piece;
 			
-		if((int)(roll_choice - '0') < roll_ind && (int)(roll_choice - '0') > 0)
-			break;
+		if((int)(roll_choice - '0') < roll_ind && (int)(roll_choice - '0') > 0) break;
+		
 		cout << "That is not a valid roll. Please choose a valid roll: ";
 	}
 
+	// convvert user choice back to roll value
 	roll_ind = 0;
 	int move_val = 0;
 	for(int i = 0; i < 4; i++)
 	{
-		if(rolls[i] != 0)
-			roll_ind++;
+		if(rolls[i] != 0) roll_ind++;
+		
 		if(roll_ind == roll_choice - '0')
 		{
 			move_val = rolls[i];
@@ -227,10 +221,7 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 					board[piece+move_val] += 2;
 					checks_on_bar[1]++;
 				}
-				else
-				{
-					board[piece+move_val]++;
-				}
+				else board[piece+move_val]++;
 			}
 		}
 		else
@@ -255,10 +246,7 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 					board[piece-move_val] -= 2;
 					checks_on_bar[0]++;
 				}
-				else
-				{
-					board[piece-move_val]--;
-				}
+				else board[piece-move_val]--;
 			}
 		}
 	}
@@ -274,10 +262,16 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 			}
 		}
 		goto select_roll;
-		// -if not make player choose new move
 		// -if no legal moves, skip players turn, however inform player and make them
 		// press enter to continue
 	}
+	if(checkWin(board, checks_on_bar))
+	{
+		printBoard(turn, board, checks_on_bar);
+		cout << endl;
+		return;
+	}
+	
 	goto print_info;
 
   
@@ -287,16 +281,14 @@ bool checkLegalMove(bool const &turn, int piece, int roll, short int board[SPACE
 {
 	if(turn)
 	{
-		if(piece == 25) // checker on bar
-			piece = -1;
+		if(piece == 25) piece = -1; // checker on bar
 		
 		if(piece+roll > SPACES-1)
 		{
 			// scan if any pieces are not in the final quarter
 			for(int i = 0; i < SPACES*3/4; i++)
 			{
-				if(board[i] > 0)
-					return false;
+				if(board[i] > 0) return false;
 			}
 		}
 		else if(board[piece+roll] < -1)
@@ -306,25 +298,23 @@ bool checkLegalMove(bool const &turn, int piece, int roll, short int board[SPACE
 	}
 	else
 	{
-		if(piece == 25)
-			piece = 24;
+		if(piece == 25) piece = 24; // checker on bar
+		
 		if(piece-roll < 0)
 		{
 			// scan if any pieces are not in the final quarter
 			for(int i = SPACES-1; i >= SPACES/4; i--)
 			{
-				if(board[i] < 0)
-					return false;
+				if(board[i] < 0) return false;
 			}
 		}
-		else if(board[piece - roll] > 1)
-			return false;
+		else if(board[piece - roll] > 1) return false;
 		
 		return true;
 	}
 } // end checkLegalMove()
 
-void printBoard(bool const &turn, short int const board[SPACES], short int const checks_on_bar[2]) // TODO check board inversion works
+void printBoard(bool const &turn, short int const board[SPACES], short int const checks_on_bar[2])
 {
 	cout << endl;
 	cout << " 13 14 15 16 17 18      19 20 21 22 23 24" << endl;
@@ -332,60 +322,51 @@ void printBoard(bool const &turn, short int const board[SPACES], short int const
 
 	if(turn)
 	{
+		// print top half
 		for(int row = 1; row <= 5; row++)
 		{
 			for(int col = SPACES / 2 + 1; col <= SPACES; col++)
 			{
-				if(board[col - 1] >= row)
-				cout << "  0";
+				if(board[col - 1] >= row) cout << "  0";
 
-				else if(board[col - 1] <= -row)
-				cout << "  O";
+				else if(board[col - 1] <= -row) cout << "  O";
 
-				else if(row == 5 && col % 2 == 1)
-				cout << "   ";
+				else if(row == 5 && col % 2 == 1) cout << "   ";
 
-				else
-				cout << "  |";
+				else cout << "  |";
 
 				if(col == SPACES * 3 / 4)
 				{
-				if(checks_on_bar[1] >= 6 - row)
-					cout << "   O ";
-				else
-					cout << "   | ";
+					if(checks_on_bar[1] >= 6 - row) cout << "   O ";
+					else cout << "   | ";
 				}
 			}
 			cout << endl;
 		}
 
+		// print center bar
 		if(checks_on_bar[0] != 0)
 			cout << "                     0" << endl;
 		else
 			cout << "                     |" << endl;
 
+		// print bottom half
 		for (int row = 5; row >= 1; row--)
 		{
 			for(int col = SPACES / 2; col > 0; col--)
 			{
-				if(board[col - 1] >= row)
-					cout << "  0";
+				if(board[col - 1] >= row) cout << "  0";
 
-				else if(board[col - 1] <= -row)
-					cout << "  O";
+				else if(board[col - 1] <= -row) cout << "  O";
 
-				else if(row == 5 && col % 2 == 1)
-					cout << "   ";
+				else if(row == 5 && col % 2 == 1) cout << "   ";
 
-				else
-					cout << "  |";
+				else cout << "  |";
 
 				if (col == SPACES / 4 + 1)
 				{
-					if(checks_on_bar[0] >= 7 - row)
-						cout << "   0 ";
-					else
-						cout << "   | ";
+					if(checks_on_bar[0] >= 7 - row) cout << "   0 ";
+					else cout << "   | ";
 				}
 			}
 			cout << endl;
@@ -393,59 +374,51 @@ void printBoard(bool const &turn, short int const board[SPACES], short int const
   	}
 	else
 	{
+		// print top half
 		for(int row = 1; row <= 5; row++)
 		{
 			for(int col = SPACES / 2; col > 0; col--)
 			{
-				if(board[col - 1] >= row)
-					cout << "  0";
+				if(board[col - 1] >= row) cout << "  0";
 
-				else if(board[col - 1] <= -row)
-					cout << "  O";
+				else if(board[col - 1] <= -row) cout << "  O";
 
-				else if(row == 5 && col % 2 == 1) // check if this is right
-					cout << "   ";
+				else if(row == 5 && col % 2 == 1) cout << "   ";
 
-				else
-					cout << "  |";
+				else cout << "  |";
 
 				if(col == SPACES / 4 + 1)
 				{
-					if(checks_on_bar[0] >= 6 - row)
-						cout << "   0 ";
-					else
-						cout << "   | ";
+					if(checks_on_bar[0] >= 6 - row) cout << "   0 ";
+					else cout << "   | ";
 				}
 			}
 			cout << endl;
 		}
-
+		
+		// print center bar
 		if(checks_on_bar[1] != 0)
 			cout << "                     O" << endl;
 		else
 			cout << "                     |" << endl;
 
+		// print bottom half
 		for(int row = 5; row >= 1; row--)
 		{
 			for(int col = SPACES / 2 + 1; col <= SPACES; col++)
 			{
-				if(board[col - 1] >= row)
-					cout << "  0";
+				if(board[col - 1] >= row) cout << "  0";
 
-				else if(board[col - 1] <= -row)
-					cout << "  O";
+				else if(board[col - 1] <= -row) cout << "  O";
 
-				else if(row == 5 && col % 2 == 1) // check this is right as well
-					cout << "   ";
+				else if(row == 5 && col % 2 == 1) cout << "   ";
 
-				else
-					cout << "  |";
+				else cout << "  |";
 
-				if(col == SPACES * 3 / 4) {
-				if(checks_on_bar[1] >= 7 - row)
-					cout << "   O ";
-				else
-					cout << "   | ";
+				if(col == SPACES * 3 / 4)
+				{
+					if(checks_on_bar[1] >= 7 - row) cout << "   O ";
+					else cout << "   | ";
 				}
 			}
 			cout << endl;
@@ -456,10 +429,11 @@ void printBoard(bool const &turn, short int const board[SPACES], short int const
 	cout << " 12 11 10  9  8  7       6  5  4  3  2  1";
 } // end printBoard()
 
-bool checkWin(short const int board[SPACES])
+bool checkWin(short const int board[SPACES], short const int checks_on_bar[2])
 {
 	int white_count = 0;
 	int red_count = 0;
+	// scan board for pieces
 	for(int i = 0; i < SPACES; i++)
 	{
 		if (board[i] < 0)
@@ -467,7 +441,7 @@ bool checkWin(short const int board[SPACES])
 		else if (board[i] > 0)
 			white_count++;
 	}
-	if(red_count == 0 || white_count == 0)
+	if((red_count == 0 && checks_on_bar[1]) || (white_count == 0 && checks_on_bar[0]))
 		return true;
 	return false;
 }
@@ -483,6 +457,9 @@ void setupBoard(short int board[SPACES])
 	// {
 	// 	board[i] = 5;
 	// }
+
+	// board[0] = -1;
+	// board[23] = 1;
 	
 	// default board setup
 	board[24 - 1] = -2;
