@@ -145,14 +145,14 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 		// ensure selected piece is in the correct range and the right suit
 		cin >> piece;
 		piece--;
-		if((piece >= 0 && piece <= 23) && ((turn && board[piece] > 0) || (!turn && board[23 - piece] < 0)))
+		if((piece >= 0 && piece <= 23) && ((turn && board[23-piece] > 0) || (!turn && board[piece] < 0)))
 			break;
 
 		cout << "That is not a valid piece. Please select a valid piece: ";
 	}
 
 	cout << "Piece " << piece + 1 << " selected." << endl;
-	if(!turn)
+	if(turn)
 		piece = 23 - piece;
 
 	select_roll:
@@ -178,7 +178,7 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 		cout << "That is not a valid roll. Please choose a valid roll: ";
 	}
 
-	// convvert user choice back to roll value
+	// convert user choice back to roll value
 	roll_ind = 0;
 	int move_val = 0;
 	for(int i = 0; i < 4; i++)
@@ -203,7 +203,13 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 			if(piece == 25)
 			{
 				// if piece is on the bar
-				board[-1+move_val]++;
+				if(board[-1+move_val] == -1)
+				{
+					board[-1+move_val] += 2;
+					checks_on_bar[1]++;
+				}
+				else board[-1+move_val]++;
+				
 				checks_on_bar[0]--;
 			}
 			else
@@ -229,7 +235,13 @@ void takeTurn(bool &turn, short int board[SPACES], short int safe_checkers[2], s
 			if(piece == 25)
 			{
 				// if piece is on the bar
-				board[24-move_val]--;
+				if(board[24-move_val] == 1)
+				{
+					board[24-move_val] -= 2;
+					checks_on_bar[0]++;
+				}
+				else board[24-move_val]--;
+				
 				checks_on_bar[1]--;
 			}
 			else
@@ -325,58 +337,6 @@ void printBoard(bool const &turn, short int const board[SPACES], short int const
 		// print top half
 		for(int row = 1; row <= 5; row++)
 		{
-			for(int col = SPACES / 2 + 1; col <= SPACES; col++)
-			{
-				if(board[col - 1] >= row) cout << "  0";
-
-				else if(board[col - 1] <= -row) cout << "  O";
-
-				else if(row == 5 && col % 2 == 1) cout << "   ";
-
-				else cout << "  |";
-
-				if(col == SPACES * 3 / 4)
-				{
-					if(checks_on_bar[1] >= 6 - row) cout << "   O ";
-					else cout << "   | ";
-				}
-			}
-			cout << endl;
-		}
-
-		// print center bar
-		if(checks_on_bar[0] != 0)
-			cout << "                     0" << endl;
-		else
-			cout << "                     |" << endl;
-
-		// print bottom half
-		for (int row = 5; row >= 1; row--)
-		{
-			for(int col = SPACES / 2; col > 0; col--)
-			{
-				if(board[col - 1] >= row) cout << "  0";
-
-				else if(board[col - 1] <= -row) cout << "  O";
-
-				else if(row == 5 && col % 2 == 1) cout << "   ";
-
-				else cout << "  |";
-
-				if (col == SPACES / 4 + 1)
-				{
-					if(checks_on_bar[0] >= 7 - row) cout << "   0 ";
-					else cout << "   | ";
-				}
-			}
-			cout << endl;
-		}
-  	}
-	else
-	{
-		// print top half
-		for(int row = 1; row <= 5; row++)
-		{
 			for(int col = SPACES / 2; col > 0; col--)
 			{
 				if(board[col - 1] >= row) cout << "  0";
@@ -389,7 +349,7 @@ void printBoard(bool const &turn, short int const board[SPACES], short int const
 
 				if(col == SPACES / 4 + 1)
 				{
-					if(checks_on_bar[0] >= 6 - row) cout << "   0 ";
+					if(checks_on_bar[1] >= 6 - row) cout << "   O ";
 					else cout << "   | ";
 				}
 			}
@@ -397,8 +357,8 @@ void printBoard(bool const &turn, short int const board[SPACES], short int const
 		}
 		
 		// print center bar
-		if(checks_on_bar[1] != 0)
-			cout << "                     O" << endl;
+		if(checks_on_bar[0] != 0)
+			cout << "                     0" << endl;
 		else
 			cout << "                     |" << endl;
 
@@ -417,6 +377,58 @@ void printBoard(bool const &turn, short int const board[SPACES], short int const
 
 				if(col == SPACES * 3 / 4)
 				{
+					if(checks_on_bar[0] >= 7 - row) cout << "   0 ";
+					else cout << "   | ";
+				}
+			}
+			cout << endl;
+		}
+  	}
+	else
+	{
+		// print top half
+		for(int row = 1; row <= 5; row++)
+		{
+			for(int col = SPACES / 2 + 1; col <= SPACES; col++)
+			{
+				if(board[col - 1] >= row) cout << "  0";
+
+				else if(board[col - 1] <= -row) cout << "  O";
+
+				else if(row == 5 && col % 2 == 1) cout << "   ";
+
+				else cout << "  |";
+
+				if(col == SPACES * 3 / 4)
+				{
+					if(checks_on_bar[0] >= 6 - row) cout << "   0 ";
+					else cout << "   | ";
+				}
+			}
+			cout << endl;
+		}
+		
+		// print center bar
+		if(checks_on_bar[1] != 0)
+			cout << "                     O" << endl;
+		else
+			cout << "                     |" << endl;
+
+		// print bottom half
+		for (int row = 5; row >= 1; row--)
+		{
+			for(int col = SPACES / 2; col > 0; col--)
+			{
+				if(board[col - 1] >= row) cout << "  0";
+
+				else if(board[col - 1] <= -row) cout << "  O";
+
+				else if(row == 5 && col % 2 == 1) cout << "   ";
+
+				else cout << "  |";
+
+				if (col == SPACES / 4 + 1)
+				{
 					if(checks_on_bar[1] >= 7 - row) cout << "   O ";
 					else cout << "   | ";
 				}
@@ -424,7 +436,7 @@ void printBoard(bool const &turn, short int const board[SPACES], short int const
 			cout << endl;
 		}
   	}
-
+	
 	cout << " ————————————————————————————————————————" << endl;
 	cout << " 12 11 10  9  8  7       6  5  4  3  2  1";
 } // end printBoard()
@@ -449,30 +461,41 @@ bool checkWin(short const int board[SPACES], short const int checks_on_bar[2])
 void setupBoard(short int board[SPACES])
 {
 	// FOR TESTING
-	// for(int i = 0; i < SPACES/2; i++)
+	// for(int i = 0; i < SPACES/4; i++)
 	// {
 	// 	board[i] = -5;
 	// }
-	// for(int i = SPACES/2; i < SPACES; i++)
+	// for(int i = SPACES*3/4; i < SPACES; i++)
 	// {
 	// 	board[i] = 5;
 	// }
 
 	// board[0] = -1;
 	// board[23] = 1;
+
+	for(int i = 0; i < 6; i++)
+	{
+		board[i] = -1;
+		board[23-i] = 1;
+	}
+	for(int i = 6; i < 12; i++)
+	{
+		board[i] = 1;
+		board[23-i] = -1;
+	}
 	
 	// default board setup
-	board[24 - 1] = -2;
-	board[1 - 1] = 2;
+	// board[24 - 1] = -2;
+	// board[1 - 1] = 2;
 
-	board[8 - 1] = -3;
-	board[17 - 1] = 3;
+	// board[8 - 1] = -3;
+	// board[17 - 1] = 3;
 
-	board[13 - 1] = -5;
-	board[12 - 1] = 5;
+	// board[13 - 1] = -5;
+	// board[12 - 1] = 5;
 
-	board[6 - 1] = -5;
-	board[19 - 1] = 5;
+	// board[6 - 1] = -5;
+	// board[19 - 1] = 5;
 	
 } // end setupBoard()
 
