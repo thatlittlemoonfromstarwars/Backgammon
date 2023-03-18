@@ -473,29 +473,29 @@ void setupBoard(short int board[SPACES])
 	// board[0] = -1;
 	// board[23] = 1;
 
-	for(int i = 0; i < 6; i++)
-	{
-		board[i] = -1;
-		board[23-i] = 1;
-	}
-	for(int i = 6; i < 12; i++)
-	{
-		board[i] = 1;
-		board[23-i] = -1;
-	}
+	// for(int i = 0; i < 6; i++)
+	// {
+	// 	board[i] = -1;
+	// 	board[23-i] = 1;
+	// }
+	// for(int i = 6; i < 12; i++)
+	// {
+	// 	board[i] = 1;
+	// 	board[23-i] = -1;
+	// }
 	
 	// default board setup
-	// board[24 - 1] = -2;
-	// board[1 - 1] = 2;
+	board[24 - 1] = -2;
+	board[1 - 1] = 2;
 
-	// board[8 - 1] = -3;
-	// board[17 - 1] = 3;
+	board[8 - 1] = -3;
+	board[17 - 1] = 3;
 
-	// board[13 - 1] = -5;
-	// board[12 - 1] = 5;
+	board[13 - 1] = -5;
+	board[12 - 1] = 5;
 
-	// board[6 - 1] = -5;
-	// board[19 - 1] = 5;
+	board[6 - 1] = -5;
+	board[19 - 1] = 5;
 	
 } // end setupBoard()
 
